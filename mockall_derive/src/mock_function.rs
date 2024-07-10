@@ -1202,7 +1202,7 @@ impl<'a> ToTokens for CommonExpectationsMethods<'a> {
                 }
 
                 /// Remove all existing expectations.
-                #v fn reset(&mut self) -> &mut Self #tg
+                #v fn reset(&mut self) -> &mut Expectations #tg
                 {
                     self.0.clear();
                     self
@@ -2445,6 +2445,11 @@ impl<'a> ToTokens for GenericExpectations<'a> {
                                Box<dyn ::mockall::AnyExpectations>>
                 {
                     self.store.drain()
+                }
+
+                #v fn reset(&mut self) -> &mut GenericExpectations {
+                    self.store.clear();
+                    self
                 }
 
                 #v fn new() -> Self {
