@@ -630,6 +630,7 @@ impl MockFunction {
             .format();
         let name = self.name();
         let expect_ident = format_ident!("expect_{}", name);
+        let reset_ident = format_ident!("reset_{}", name);
         let expectation_obj = self.expectation_obj(self_args);
         let funcname = &self.sig.ident;
         let (_, tg, _) = if self.is_method_generic() {
@@ -660,17 +661,29 @@ impl MockFunction {
         } else {
             quote!()
         };
-        let docstr = format!("Create an [`Expectation`]({}/{}/struct.Expectation.html) for mocking the `{}` method",
-            modname, self.inner_mod_ident(), funcname);
+        let expect_docstr = format!("Create an [`Expectation`]({}/{}/struct.Expectation.html) for mocking the `{}` method",
+                                    modname, self.inner_mod_ident(), funcname);
+        let reset_docstr = format!("Replace all existing expectations for mocking the `{funcname}` method with a new [`Expectation`]({}/{}/struct.Expectation.html)",
+                                    modname, self.inner_mod_ident());
         quote!(
             #must_use
-            #[doc = #docstr]
+            #[doc = #expect_docstr]
             #(#attrs)*
             #vis fn #expect_ident #ig(&mut self)
                -> &mut #modname::#expectation_obj
                #wc
             {
                 self.#substruct_obj #name.expect #tbf()
+            }
+
+            #must_use
+            #[doc = #reset_docstr]
+            #(#attrs)*
+            #vis fn #reset_ident #ig(&mut self)
+               -> &mut #modname::#expectation_obj
+               #wc
+            {
+                self.#substruct_obj #name.reset().expect #tbf()
             }
         )
     }
@@ -1186,6 +1199,13 @@ impl<'a> ToTokens for CommonExpectationsMethods<'a> {
                     self.0.push(Expectation::default());
                     let __mockall_l = self.0.len();
                     &mut self.0[__mockall_l - 1]
+                }
+
+                /// Remove all existing expectations.
+                #v fn reset(&mut self) -> &mut Self #tg
+                {
+                    self.0.clear();
+                    self
                 }
 
                 #v fn new() -> Self {
