@@ -2466,7 +2466,7 @@ impl<'a> ToTokens for GenericExpectations<'a> {
         if ! self.f.is_static() && ! self.f.is_method_generic() {
             return;
         }
-
+        let lg = lifetimes_to_generics(&self.f.alifetimes);
         let ge = StaticGenericExpectations{f: self.f};
         let v = &self.f.privmod_vis;
         quote!(
@@ -2479,7 +2479,7 @@ impl<'a> ToTokens for GenericExpectations<'a> {
                 store: std::collections::hash_map::HashMap<::mockall::Key,
                                Box<dyn ::mockall::AnyExpectations>>
             }
-            impl GenericExpectations {
+            impl #lg GenericExpectations {
                 /// Verify that all current expectations are satisfied and clear
                 /// them.  This applies to all sets of generic parameters!
                 #v fn checkpoint(&mut self) ->
@@ -2514,6 +2514,7 @@ impl<'a> ToTokens for StaticGenericExpectations<'a> {
         let argnames = &self.f.argnames;
         let argty = &self.f.argty;
         let (ig, tg, wc) = self.f.egenerics.split_for_impl();
+        let lg = lifetimes_to_generics(&self.f.alifetimes);
         let keyid = gen_keyid(&self.f.egenerics);
         let mut any_wc = wc.cloned();
         if self.f.return_ref || self.f.return_refmut {
@@ -2537,7 +2538,7 @@ impl<'a> ToTokens for StaticGenericExpectations<'a> {
         };
         quote!(
             impl #ig ::mockall::AnyExpectations for Expectations #tg #any_wc {}
-            impl GenericExpectations {
+            impl #lg GenericExpectations {
                 /// Simulating calling the real method.
                 #v fn #call #ig (#self_, #(#argnames: #argty, )* )
                     -> Option<#output> #wc
