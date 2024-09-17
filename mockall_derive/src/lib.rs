@@ -827,6 +827,12 @@ impl<'a> AttrFormatter<'a> {
                 } else if *i.as_ref().unwrap() == "cold" {
                     // No need for such hints on mock functions.
                     false
+                } else if *i.as_ref().unwrap() == "deprecated" {
+                    // Marking trait impl as deprecated causes an error.
+                    false
+                } else if *i.as_ref().unwrap() == "auto_impl" {
+                    // Don't interfere with auto_impl.
+                    false
                 } else if *i.as_ref().unwrap() == "instrument" {
                     // We can't usefully instrument the mock method, so just
                     // ignore this attribute.
